@@ -14,7 +14,7 @@ jobs:
           echo "head: $HEAD"
           echo "base: $BASE"
           echo "ref: $REF"
-          echo "IsWeb: ${{ contains('web-', $HEAD) }}"
+          echo "IsWeb: ${{ contains('web-', env.HEAD) }}"
         env:
           HEAD: ${{ github.head_ref }}
           BASE: ${{ github.base_ref }}
