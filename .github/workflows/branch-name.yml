@@ -10,6 +10,10 @@ jobs:
     
     steps:
       - run: |
-        echo "head: ${{ github.head_ref }}"
-        echo "base: ${{ github.base_ref }}"
-        echo "ref: ${{ github_ref }}"
+        echo "head: $HEAD"
+        echo "base: $BASE"
+        echo "ref: $REF"
+        env:
+          HEAD: ${{ github.head_ref }}
+          BASE: ${{ github.base_ref }}
+          REF: ${{ github.ref }}
