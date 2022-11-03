@@ -9,10 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - run: |
-        echo "head: $HEAD"
-        echo "base: $BASE"
-        echo "ref: $REF"
+      - name: Echo
+        run: |
+          echo "head: $HEAD"
+          echo "base: $BASE"
+          echo "ref: $REF"
         env:
           HEAD: ${{ github.head_ref }}
           BASE: ${{ github.base_ref }}
