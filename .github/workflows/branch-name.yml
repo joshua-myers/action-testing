@@ -18,7 +18,7 @@ jobs:
           echo "Is Web: ${{ contains(env.HEAD, 'web-') }}"
           echo "Is Preview: ${{ contains(env.BASE, 'preview') }}"
           echo "Is Production: ${{ contains(env.BASE, 'production') }}"
-          echo "Branch from ref: ${GITHUB_REF#/ref/heads/}"
+          echo "Branch from ref: ${{ github.ref_name }}
         env:
           HEAD: ${{ github.head_ref }}
           BASE: ${{ github.base_ref }}
