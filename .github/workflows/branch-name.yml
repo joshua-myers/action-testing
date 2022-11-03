@@ -14,6 +14,7 @@ jobs:
           echo "head: $HEAD"
           echo "base: $BASE"
           echo "ref: $REF"
+          echo "Is Manual: ${{ github.event_name == 'workflow_dispatch' }}"
           echo "Is Web: ${{ contains(env.HEAD, 'web-') }}"
           echo "Is Preview: ${{ contains(env.BASE, 'preview') }}"
           echo "Is Production: ${{ contains(env.BASE, 'production') }}"
@@ -21,3 +22,6 @@ jobs:
           HEAD: ${{ github.head_ref }}
           BASE: ${{ github.base_ref }}
           REF: ${{ github.ref }}
+          
+      - name: github
+        run: echo "${{ toJson(github) }}"
