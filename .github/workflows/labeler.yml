@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: echo
-        run: echo "${{toJSON(github.rest.issues)}}""
+        run: echo "${{ context.issue }}"
 
       # - name: label
       #   uses: actions/github-script@v6
