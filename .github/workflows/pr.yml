@@ -1,1 +1,13 @@
+name: PR
+on:
+  - pull_request
 
+jobs:
+  pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            echo "${{ toJson(github.event) }}"
