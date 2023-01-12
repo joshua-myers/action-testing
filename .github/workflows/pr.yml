@@ -1,6 +1,10 @@
 name: PR
 on:
   - pull_request
+  - issues
+  - issue_comment
+
+permissions: read-all
 
 jobs:
   pr:
