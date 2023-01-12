@@ -1,7 +1,6 @@
 name: Labeler
 on:
   issues:
-    types: [opened, edited]
 
 jobs:
   label_issue:
