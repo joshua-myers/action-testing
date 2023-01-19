@@ -54,7 +54,8 @@ jobs:
       - name: Echo
         run: |
           echo "alias: ${{ needs.set_alias.outputs.alias }}"
-          echo "environment: ${{ needs.set_environment.outputs.web_env }}" 
+          echo "environment: ${{ needs.set_environment.outputs.web_env }}"
+          echo "publish: ${{ github.event_name == 'push' && (github_ref_name == 'production' || github.ref_name == 'preview') }}"
             
       # Checkout code
       - name: Checkout
