@@ -8,7 +8,21 @@ on:
       - production  
   
 jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ github.event.inputs.run }}
+    if: |
+      github.event_name == 'workflow_dispatch'
+      || (github.event_name == 'push' && (github.ref_name == 'preview' || github.ref_name == 'production'))
+      || (github.event_name == 'pull_request' && (github.base_ref == 'preview' || github.base_ref == 'production' || contains(github.head_ref, 'web-')))
+    steps:
+      - id: run
+        run: echo "run=true" >> $GITHUB_OUTPUT
+  
   set_environment:
+    needs:
+      - authorize
     runs-on: ubuntu-latest
     outputs:
       web_env: ${{ steps.setenv_manual.outputs.web_env || steps.setenv_prod.outputs.web_env || steps.setenv_stg.outputs.web_env }}
@@ -26,6 +40,8 @@ jobs:
         run: echo "web_env=task-tag-stg" >> $GITHUB_OUTPUT
 
   set_alias:
+    needs:
+      - authorize
     runs-on: ubuntu-latest
     outputs:
       alias: ${{ steps.alias_manual.outputs.alias || steps.alias_destination.outputs.alias || steps.alias_source.outputs.alias }}
@@ -53,11 +69,6 @@ jobs:
     needs:
       - set_environment
       - set_alias
-    if: |
-      github.event_name == 'workflow_dispatch'
-      || github.ref_name == 'preview'
-      || github.ref_name == 'production'
-      || contains(github.head_ref, 'web-')
     steps:
       - name: Echo
         run: |
