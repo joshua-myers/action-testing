@@ -35,6 +35,12 @@ jobs:
         id: alias_source
         if: ${{ github.head_ref != 'main' }}
         run: echo "alias=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+        
+      # Handles PR main -> preview -> production
+      - name: Set Alias to destination branch
+        id: alias_destination
+        if: ${{ github.base_ref == 'preview' || github.base_ref == 'production' }}
+        run: echo "alias=${{ github.base_ref }}" >> $GITHUB_OUTPUT
 
       # Handles manual trigger
       - name: Set Alias to branch for manual trigger
@@ -68,21 +74,6 @@ jobs:
       
   testing:
     runs-on: ubuntu-latest
-    if: false
     steps:
-      - name: Echo
-        run: |
-          echo "head: $HEAD"
-          echo "base: $BASE"
-          echo "ref: $REF"
-          echo "Is Manual: ${{ github.event_name == 'workflow_dispatch' }}"
-          echo "Is Web: ${{ contains(github.head_ref, 'web-') }}"
-          echo "Is Preview: ${{ contains(github.ref_name, 'preview') }}"
-          echo "Is Production: ${{ contains(github.ref_name, 'production') }}"
-        env:
-          HEAD: ${{ github.head_ref }}
-          BASE: ${{ github.base_ref }}
-          REF: ${{ github.ref }}
-          
       - name: github
         run: echo "${{ toJson(github) }}"
