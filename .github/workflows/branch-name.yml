@@ -1,4 +1,4 @@
-name: Test
+name: Branch Name
 on:
   workflow_dispatch:
   pull_request:
