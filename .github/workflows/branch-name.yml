@@ -14,8 +14,10 @@ jobs:
       run: ${{ github.event.inputs.run }}
     if: |
       github.event_name == 'workflow_dispatch'
-      || (github.event_name == 'push' && (github.ref_name == 'preview' || github.ref_name == 'production'))
-      || (github.event_name == 'pull_request' && (github.base_ref == 'preview' || github.base_ref == 'production' || contains(github.head_ref, 'web-')))
+      || (github.event_name == 'push' 
+          && (github.ref_name == 'preview' || github.ref_name == 'production'))
+      || (github.event_name == 'pull_request' 
+          && (github.base_ref == 'preview' || github.base_ref == 'production' || contains(github.head_ref, 'web-')))
     steps:
       - id: run
         run: echo "run=true" >> $GITHUB_OUTPUT
@@ -45,7 +47,7 @@ jobs:
       - authorize
     runs-on: ubuntu-latest
     outputs:
-      alias: ${{ steps.alias_manual.outputs.alias || steps.alias_destination.outputs.alias || steps.alias_source.outputs.alias }}
+      alias: ${{ steps.alias_manual.outputs.alias || steps.alias_pr_name.outputs.alias || steps.alias_source.outputs.alias }}
     steps:
       # Handles branch_name -> main
       - name: Set Alias to source branch
@@ -54,13 +56,13 @@ jobs:
         run: echo "alias=${{ github.head_ref }}" >> $GITHUB_OUTPUT
         
       # Handles PR main -> preview -> production
-      - name: Set Alias to destination branch
-        id: alias_destination
+      - name: Set Alias to PR name
+        id: alias_pr_name
         if: github.event_name == 'pull_request' && (github.base_ref == 'preview' || github.base_ref == 'production')
         run: echo "alias=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
 
       # Handles manual trigger or push
-      - name: Set Alias to branch for manual trigger
+      - name: Set Alias to branch for manual trigger or branch push
         id: alias_manual
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         run: echo "alias=${{ github.event.inputs.alias || github.ref_name }}" >> $GITHUB_OUTPUT
