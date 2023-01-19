@@ -33,7 +33,7 @@ jobs:
       - id: setenv_prod
         if: |
           (github.event_name == 'push' && github.ref_name == 'production') 
-          || (github.event_name == 'pull_request' && github.base_ref == 'production')
+          || (github.event_name == 'pull_request' && github.head_ref == 'production')
         run: echo "web_env=production" >> $GITHUB_OUTPUT
 
       - id: setenv_manual
