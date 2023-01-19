@@ -1,8 +1,14 @@
-name: Test
+name: Branch Name
 on:
   workflow_dispatch:
   pull_request:
-  
+    branches-ignore:
+      - preview
+      - production
+  push:
+    branches:
+      - preview
+      - production  
   
 jobs:
   testing:
@@ -14,10 +20,14 @@ jobs:
           echo "head: $HEAD"
           echo "base: $BASE"
           echo "ref: $REF"
-          echo "Is Web: ${{ contains(env.HEAD, 'web-') }}"
-          echo "Is Preview: ${{ contains(env.BASE, 'preview') }}"
-          echo "Is Production: ${{ contains(env.BASE, 'production') }}"
+          echo "Is Manual: ${{ github.event_name == 'workflow_dispatch' }}"
+          echo "Is Web: ${{ contains(github.head_ref, 'web-') }}"
+          echo "Is Preview: ${{ contains(github.ref_name, 'preview') }}"
+          echo "Is Production: ${{ contains(github.ref_name, 'production') }}"
         env:
           HEAD: ${{ github.head_ref }}
           BASE: ${{ github.base_ref }}
           REF: ${{ github.ref }}
+          
+      - name: github
+        run: echo "${{ toJson(github) }}"
