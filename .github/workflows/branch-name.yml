@@ -11,12 +11,15 @@ jobs:
   authorize:
     runs-on: ubuntu-latest
     outputs:
-      run: true
+      run: ${{ github.event.inputs.run }}
     if: |
       github.event_name == 'workflow_dispatch'
       || github.event_name == 'push' && (github.ref_name == 'preview' || github.ref_name == 'production')
       || github.event_name == 'pull_request' && (github.base_ref == 'preview' || github.base_ref == 'production' || contains(github.head_ref, 'web-')
-      
+    steps:
+      - id: run
+        run: echo "run=true" >> $GITHUB_OUTPUT
+  
   set_environment:
     needs:
       - authorize
