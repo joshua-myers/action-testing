@@ -56,7 +56,7 @@ jobs:
       # Handles PR main -> preview -> production
       - name: Set Alias to destination branch
         id: alias_destination
-        if: github.event_name == 'pull_request && (github.base_ref == 'preview' || github.base_ref == 'production')
+        if: github.event_name == 'pull_request' && (github.base_ref == 'preview' || github.base_ref == 'production')
         run: echo "alias=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
 
       # Handles manual trigger or push
