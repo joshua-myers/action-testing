@@ -11,9 +11,53 @@ on:
       - production  
   
 jobs:
+  set_environment:
+    runs-on: ubuntu-latest
+    outputs:
+      web_env: ${{ steps.setenv_manual.outputs.web_env || steps.setenv_prod.outputs.web_env || steps.setenv_stg.outputs.web_env }}
+    steps:
+      - id: setenv_manual
+        if: github.event_name == 'workflow_dispatch'
+        run: echo "web_env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+
+      - id: setenv_prod
+        if: github.event_name != 'workflow_dispatch' && github.ref_name == 'production'
+        run: echo "web_env=production" >> $GITHUB_OUTPUT
+
+      - id: setenv_stg
+        if: github.ref_name != 'production'
+        run: echo "web_env=task-tag-stg" >> $GITHUB_OUTPUT
+
+  set_alias:
+    runs-on: ubuntu-latest
+    outputs:
+      alias: ${{ steps.alias_manual.outputs.alias || steps.alias_destination.outputs.alias || steps.alias_source.outputs.alias }}
+    steps:
+      # Handles branch_name -> main
+      - name: Set Alias to source branch
+        id: alias_source
+        if: ${{ github.head_ref != 'main' }}
+        run: echo "alias=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+
+      # Handles manual trigger
+      - name: Set Alias to branch for manual trigger
+        id: alias_manual
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        run: echo "alias=${{ github.event.inputs.alias || github.ref_name }}" >> $GITHUB_OUTPUT
+
+  publish:
+    runs-on: ubuntu-latest
+    needs:
+      - set_environment
+      - set_alias
+    steps:
+      - name: Echo
+        run: |
+          echo "alias: ${{ needs.set_alias.outputs.alias }}"
+          echo "environment: ${{ needs.set_environment.outputs.web_env }}"    
+      
   testing:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Echo
         run: |
