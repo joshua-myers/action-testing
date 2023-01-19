@@ -54,7 +54,14 @@ jobs:
       - name: Echo
         run: |
           echo "alias: ${{ needs.set_alias.outputs.alias }}"
-          echo "environment: ${{ needs.set_environment.outputs.web_env }}"    
+          echo "environment: ${{ needs.set_environment.outputs.web_env }}" 
+            
+      # Checkout code
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       
   testing:
     runs-on: ubuntu-latest
