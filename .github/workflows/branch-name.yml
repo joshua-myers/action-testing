@@ -54,7 +54,7 @@ jobs:
       - name: Echo
         run: |
           echo "alias: ${{ needs.set_alias.outputs.alias }}"
-          echo "environment: ${{ needs.set_environment.web_env }}"    
+          echo "environment: ${{ needs.set_environment.outputs.web_env }}"    
       
   testing:
     runs-on: ubuntu-latest
