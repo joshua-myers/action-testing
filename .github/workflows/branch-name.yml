@@ -2,33 +2,47 @@ name: Branch Name
 on:
   workflow_dispatch:
   pull_request:
-    branches-ignore:
-      - preview
-      - production
   push:
     branches:
       - preview
       - production  
   
 jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ github.event.inputs.run }}
+    if: |
+      github.event_name == 'workflow_dispatch'
+      || (github.event_name == 'push' && (github.ref_name == 'preview' || github.ref_name == 'production'))
+      || (github.event_name == 'pull_request' && (github.base_ref == 'preview' || github.base_ref == 'production' || contains(github.head_ref, 'web-')))
+    steps:
+      - id: run
+        run: echo "run=true" >> $GITHUB_OUTPUT
+  
   set_environment:
+    needs:
+      - authorize
     runs-on: ubuntu-latest
     outputs:
       web_env: ${{ steps.setenv_manual.outputs.web_env || steps.setenv_prod.outputs.web_env || steps.setenv_stg.outputs.web_env }}
     steps:
+      - id: setenv_stg
+        run: echo "web_env=task-tag-stg" >> $GITHUB_OUTPUT
+
+      - id: setenv_prod
+        if: |
+          (github.event_name == 'push' && github.ref_name == 'production') 
+          || (github.event_name == 'pull_request' && github.head_ref == 'production')
+        run: echo "web_env=production" >> $GITHUB_OUTPUT
+
       - id: setenv_manual
         if: github.event_name == 'workflow_dispatch'
         run: echo "web_env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
-
-      - id: setenv_prod
-        if: github.event_name != 'workflow_dispatch' && github.ref_name == 'production'
-        run: echo "web_env=production" >> $GITHUB_OUTPUT
-
-      - id: setenv_stg
-        if: github.ref_name != 'production'
-        run: echo "web_env=task-tag-stg" >> $GITHUB_OUTPUT
-
+        
   set_alias:
+    needs:
+      - authorize
     runs-on: ubuntu-latest
     outputs:
       alias: ${{ steps.alias_manual.outputs.alias || steps.alias_destination.outputs.alias || steps.alias_source.outputs.alias }}
@@ -38,8 +52,14 @@ jobs:
         id: alias_source
         if: ${{ github.head_ref != 'main' }}
         run: echo "alias=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+        
+      # Handles PR main -> preview -> production
+      - name: Set Alias to destination branch
+        id: alias_destination
+        if: github.event_name == 'pull_request' && (github.base_ref == 'preview' || github.base_ref == 'production')
+        run: echo "alias=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
 
-      # Handles manual trigger
+      # Handles manual trigger or push
       - name: Set Alias to branch for manual trigger
         id: alias_manual
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
@@ -54,24 +74,19 @@ jobs:
       - name: Echo
         run: |
           echo "alias: ${{ needs.set_alias.outputs.alias }}"
-          echo "environment: ${{ needs.set_environment.outputs.web_env }}"    
+          echo "environment: ${{ needs.set_environment.outputs.web_env }}"
+          echo "publish: ${{ github.event_name == 'push' && (github.ref_nme == 'production' || github.ref_name == 'preview') }}"
+          echo "title: ${{ github.event.pull_request.title }}"
+          
+      # Checkout code
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       
   testing:
     runs-on: ubuntu-latest
     steps:
-      - name: Echo
-        run: |
-          echo "head: $HEAD"
-          echo "base: $BASE"
-          echo "ref: $REF"
-          echo "Is Manual: ${{ github.event_name == 'workflow_dispatch' }}"
-          echo "Is Web: ${{ contains(github.head_ref, 'web-') }}"
-          echo "Is Preview: ${{ contains(github.ref_name, 'preview') }}"
-          echo "Is Production: ${{ contains(github.ref_name, 'production') }}"
-        env:
-          HEAD: ${{ github.head_ref }}
-          BASE: ${{ github.base_ref }}
-          REF: ${{ github.ref }}
-          
       - name: github
         run: echo "${{ toJson(github) }}"
