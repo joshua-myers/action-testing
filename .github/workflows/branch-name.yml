@@ -2,9 +2,6 @@ name: Branch Name
 on:
   workflow_dispatch:
   pull_request:
-    branches-ignore:
-      - preview
-      - production
   push:
     branches:
       - preview
@@ -50,11 +47,17 @@ jobs:
     needs:
       - set_environment
       - set_alias
+    if: |
+      github.event_name == 'workflow_dispatch'
+      || github.ref_name == 'preview'
+      || github.ref_name == 'production'
+      || contains(github.head_ref, 'web-')
     steps:
       - name: Echo
         run: |
           echo "alias: ${{ needs.set_alias.outputs.alias }}"
-          echo "environment: ${{ needs.set_environment.outputs.web_env }}" 
+          echo "environment: ${{ needs.set_environment.outputs.web_env }}"
+          echo "publish: ${{ github.event_name == 'push' && (github.ref_name == 'production' || github.ref_name == 'preview') }}"
             
       # Checkout code
       - name: Checkout
@@ -65,6 +68,7 @@ jobs:
       
   testing:
     runs-on: ubuntu-latest
+    if: false
     steps:
       - name: Echo
         run: |
