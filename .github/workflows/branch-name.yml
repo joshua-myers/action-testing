@@ -25,20 +25,24 @@ jobs:
       - authorize
     runs-on: ubuntu-latest
     outputs:
-      web_env: ${{ steps.setenv_manual.outputs.web_env || steps.setenv_prod.outputs.web_env || steps.setenv_stg.outputs.web_env }}
+      web_env: | 
+        steps.setenv_manual.outputs.web_env
+        || steps.setenv_prod.outputs.web_env
+        || steps.setenv_stg.outputs.web_env
     steps:
+      - id: setenv_stg
+        run: echo "web_env=task-tag-stg" >> $GITHUB_OUTPUT
+        
+      - id: setenv_prod
+        if: |
+          (gitHub.event_name == 'push' && github.ref_name == 'production')
+          || (gitHub.event_name == 'pull_request' && gitHub.base_ref == 'production')
+        run: echo "web_env=production" >> $GITHUB_OUTPUT
+        
       - id: setenv_manual
         if: github.event_name == 'workflow_dispatch'
         run: echo "web_env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
-
-      - id: setenv_prod
-        if: github.event_name != 'workflow_dispatch' && github.ref_name == 'production'
-        run: echo "web_env=production" >> $GITHUB_OUTPUT
-
-      - id: setenv_stg
-        if: github.ref_name != 'production'
-        run: echo "web_env=task-tag-stg" >> $GITHUB_OUTPUT
-
+        
   set_alias:
     needs:
       - authorize
@@ -81,7 +85,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-
       
   testing:
     runs-on: ubuntu-latest
