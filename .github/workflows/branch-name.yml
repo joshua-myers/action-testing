@@ -25,10 +25,7 @@ jobs:
       - authorize
     runs-on: ubuntu-latest
     outputs:
-      web_env: |
-        ${{ steps.setenv_manual.outputs.web_env
-         || steps.setenv_prod.outputs.web_env
-         || steps.setenv_stg.outputs.web_env }}
+      web_env: ${{ steps.setenv_manual.outputs.web_env || steps.setenv_prod.outputs.web_env || steps.setenv_stg.outputs.web_env }}
     steps:
       - id: setenv_stg
         run: echo "web_env=task-tag-stg" >> $GITHUB_OUTPUT
