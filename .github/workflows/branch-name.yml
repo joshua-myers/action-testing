@@ -32,7 +32,7 @@ jobs:
     steps:
       - id: setenv_stg
         run: echo "web_env=task-tag-stg" >> $GITHUB_OUTPUT
-        
+
       - id: setenv_prod
         if: |
           (gitHub.event_name == 'push' && github.ref_name == 'production')
@@ -59,10 +59,10 @@ jobs:
       # Handles PR main -> preview -> production
       - name: Set Alias to destination branch
         id: alias_destination
-        if: ${{ github.base_ref == 'preview' || github.base_ref == 'production' }}
-        run: echo "alias=${{ github.base_ref }}" >> $GITHUB_OUTPUT
+        if: github.event_name == 'pull_request' && (github.base_ref == 'preview' || github.base_ref == 'production')
+        run: echo "alias=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
 
-      # Handles manual trigger
+      # Handles manual trigger or push
       - name: Set Alias to branch for manual trigger
         id: alias_manual
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
@@ -78,8 +78,9 @@ jobs:
         run: |
           echo "alias: ${{ needs.set_alias.outputs.alias }}"
           echo "environment: ${{ needs.set_environment.outputs.web_env }}"
-          echo "publish: ${{ github.event_name == 'push' && (github.ref_name == 'production' || github.ref_name == 'preview') }}"
-            
+          echo "publish: ${{ github.event_name == 'push' && (github.ref_nme == 'production' || github.ref_name == 'preview') }}"
+          echo "title: ${{ github.event.pull_request.title }}"
+          
       # Checkout code
       - name: Checkout
         uses: actions/checkout@v3
