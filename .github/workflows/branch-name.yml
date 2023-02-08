@@ -91,7 +91,7 @@ jobs:
       - name: Set Alias to branch from comment
         id: alias_comment
         if: github.event_name == 'issue_comment'
-        run: echo "alias=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref_name }}" >> $GITHUB_OUTPUT
+        run: echo "alias=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}" >> $GITHUB_OUTPUT
 
   publish:
     runs-on: ubuntu-latest
@@ -131,4 +131,4 @@ jobs:
       
       - name: Pull Request Output
         if: github.event_name == 'issue_comment'
-        run: echo "${{ fromJson(steps.get_pull_request_ref.outputs.data) }}"
+        run: echo "${{ toJson(fromJson(steps.get_pull_request_ref.outputs.data).head) }}"
