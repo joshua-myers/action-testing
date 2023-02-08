@@ -56,7 +56,7 @@ jobs:
       - authorize
     runs-on: ubuntu-latest
     outputs:
-      alias: ${{ steps.alias_manual.outputs.alias || steps.alias_destination.outputs.alias || steps.alias_source.outputs.alias }}
+      alias: ${{ steps.alias_manual.outputs.alias || steps.alias_destination.outputs.alias || steps.alias_source.outputs.alias || steps.alias_comment.outpus.alias }}
     steps:
       # Handles branch_name -> main
       - name: Set Alias to source branch
@@ -75,6 +75,23 @@ jobs:
         id: alias_manual
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         run: echo "alias=${{ github.event.inputs.alias || github.ref_name }}" >> $GITHUB_OUTPUT
+        
+      # Handles issue comment
+      - name: get pull request ref
+        id: get_pull_request_ref
+        if: github.event_name == 'issue_comment'
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/:repository/pulls/:issue_id
+          repository: ${{ github.repository }}
+          issue_id: ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          
+      - name: Set Alias to branch from comment
+        id: alias_comment
+        if: github.event_name == 'issue_comment'
+        run: echo "alias=${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref_name }}" >> $GITHUB_OUTPUT
 
   publish:
     runs-on: ubuntu-latest
