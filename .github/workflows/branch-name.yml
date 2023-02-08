@@ -56,7 +56,7 @@ jobs:
       - authorize
     runs-on: ubuntu-latest
     outputs:
-      alias: ${{ steps.alias_manual.outputs.alias || steps.alias_destination.outputs.alias || steps.alias_source.outputs.alias || steps.alias_comment.outpus.alias }}
+      alias: ${{ steps.alias_comment.outpus.alias || steps.alias_manual.outputs.alias || steps.alias_destination.outputs.alias || steps.alias_source.outputs.alias }}
     steps:
       # Handles branch_name -> main
       - name: Set Alias to source branch
