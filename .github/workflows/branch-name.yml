@@ -117,3 +117,19 @@ jobs:
     steps:
       - name: github
         run: echo "${{ toJson(github) }}"
+        
+      - name: get pull request ref
+        id: get_pull_request_ref
+        if: github.event_name == 'issue_comment'
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/:repository/pulls/:issue_id
+          repository: ${{ github.repository }}
+          issue_id: ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      
+      - name: Set Alias to branch from comment
+        id: echo pulls
+        if: github.event_name == 'issue_comment'
+        run: echo "${{ fromJson(steps.get_pull_request_ref.outputs.data) }}"
