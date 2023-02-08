@@ -129,7 +129,6 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       
-      - name: Set Alias to branch from comment
-        id: echo pulls
+      - name: Pull Request Output
         if: github.event_name == 'issue_comment'
         run: echo "${{ fromJson(steps.get_pull_request_ref.outputs.data) }}"
