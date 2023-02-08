@@ -5,7 +5,9 @@ on:
   push:
     branches:
       - preview
-      - production  
+      - production
+  issue_comment:
+    types: [created]
   
 jobs:
   authorize:
@@ -14,10 +16,19 @@ jobs:
       run: ${{ github.event.inputs.run }}
     if: |
       github.event_name == 'workflow_dispatch'
+      || github.event_name == 'issue_comment'
       || (github.event_name == 'push' && (github.ref_name == 'preview' || github.ref_name == 'production'))
       || (github.event_name == 'pull_request' && (github.base_ref == 'preview' || github.base_ref == 'production' || contains(github.head_ref, 'web-')))
     steps:
+      - uses: khan/pull-request-comment-trigger@v1.1.0
+        id: check_comment
+        with:
+          trigger: '/deploy web'
+          reaction: rocket
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
       - id: run
+        if: github.event_name != 'issue_comment' || steps.check_comment.outputs.trigger
         run: echo "run=true" >> $GITHUB_OUTPUT
   
   set_environment:
